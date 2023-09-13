@@ -110,19 +110,19 @@ func main(){
 		nil,
 	)
 
-	
+	confirmar := [4]int{1,1,1,1}
 	
 	go func() {
 		for d := range msgs {
 			region, _ := strconv.Atoi(string(d.Body[0]))  
 			log.Println("Llaves pedidas por", servers[region],": ", string(d.Body[1:]))
-			
 			stringg := string(d.Body)
 			stringg = stringg[2:] 
 
 			llaves_pedidas := 0
 			if len(stringg) != 0 {
 				llaves_pedidas, _ = strconv.Atoi(stringg)
+				confirmar[region], _ = strconv.Atoi(stringg)
 			} else{
 				llaves_pedidas = 0
 
@@ -148,6 +148,11 @@ func main(){
 				log.Println("Llaves q no accedio europa: ",no_accedidos)
 			}
 
+			j := 0
+			for m := 0; m < len(confirmar); m++ {
+				if confirmar[m] == 0{j++}
+			}
+			if j == 4{iteraciones = 0}
 			canal <- 1
 
 		}	
@@ -193,7 +198,46 @@ func main(){
 		
 
 		}
-	} // else
+	}else{
+		for ; iteraciones == 0; {
+			rand.Seed(time.Now().UnixNano())
+			llaves = rand.Intn(max - min + 1) + min
+
+			// Asia
+			r, err := c_asia.MandarLlaves(ctx, &pb.Llaves{Numero: string(llaves)})  // x4
+			if err != nil {
+				log.Fatalf("could not send: %v", err)
+			}
+			log.Printf("Sending: %s", r.GetFlag())
+					
+			// Europa
+			r, err = c_europa.MandarLlaves(ctx, &pb.Llaves{Numero: string(llaves)})  // x4
+			if err != nil {
+				log.Fatalf("could not send: %v", err)
+			}
+			log.Printf("Sending: %s", r.GetFlag())
+
+
+			// America
+			// Oceania
+
+			// Rabbit
+			
+			
+	
+			
+			for ; sum < 2; {
+				select {
+				case  <- canal:
+					sum++
+				}
+			}
+
+			sum = 0
+		
+
+		}
+	}
 		
 	
 
