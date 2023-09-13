@@ -19,17 +19,14 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-const (
-	defaultUsers = 0
-)
 
 var (
 	central = flag.String("addr_central", "localhost:50051", "the address to connect to")
 	asia = flag.Int("asia_port", 50052, "The server port")
-	usuarios = flag.Int("usuarios", defaultUsers, "Cantidad de usuarios")
-	interesados = flag.Int("interesados", 0, "Cantidad de interesados en la iteración")
-	min = flag.Int("minimo", 0, "")
-	max = flag.Int("maximo", 0, "")
+	usuarios int
+	interesados int
+	min int
+	max int 
 )
 
 type server struct {
@@ -43,13 +40,13 @@ func (s *server) MandarLlaves(ctx context.Context, in *pb.Llaves) (*pb.Confirmar
 }
 func (s server) MandarNoAccedidos(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
     log.Printf("Recibido: %d", in.GetNumero())
-    usuariosValor := *usuarios
+    usuariosValor := usuarios
     interesadosValor, err := strconv.Atoi(in.GetNumero()) 
     if err != nil{
         return nil, err
     }
     usuariosValor = int(math.Max(0, float64(usuariosValor - (interesadosValor - usuariosValor))))
-    usuarios = &usuariosValor
+    usuarios = usuariosValor
 
     return &pb.Confirmar{Flag: "1"}, nil
 }
@@ -58,12 +55,14 @@ func (s server) MandarNoAccedidos(ctx context.Context, in *pb.Llaves) (*pb.Confi
 func main() {
 	flag.Parse()
 
-	file, _ := os.Open("parametros_de_inicio.txt")
+	file, _ := os.Open("asia/parametros_de_inicio.txt")
 	scanner := bufio.NewScanner(file)
+	//scanner.Split(bufio.ScanWords)
 	scanner.Scan()
-	usuarios, err := strconv.Atoi(scanner.Text())
-	*min = int(float64(usuarios)*0.4)
-	*max = int(float64(usuarios)*0.6)
+	usuarios, _ := strconv.Atoi(scanner.Text())
+	log.Println(usuarios)
+	min = int(float64(usuarios)*0.4)
+	max = int(float64(usuarios)*0.6)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *asia))
 	if err != nil {
@@ -115,13 +114,12 @@ func rabbit() {
 
 
 	rand.Seed(time.Now().UnixNano())
-	llaves := rand.Intn(*max - *min + 1) + *min
+	llaves := rand.Intn(max - min + 1) + min
 	s := [2]string{"AS", string(llaves)}
 
 	envio := strings.Join(s[1:], " ")
-	log.Println("MAX: ",*max)
-	log.Println("MIN: ",*min)
-	log.Println("llaves ASIA ",llaves)
+	log.Println("llaves: ",llaves)
+
 	err = ch.Publish(
 		"",
 		"cola",
