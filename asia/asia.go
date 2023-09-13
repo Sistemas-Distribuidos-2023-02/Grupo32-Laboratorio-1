@@ -113,12 +113,15 @@ func rabbit() {
 		panic(err)
 	}
 
+
 	rand.Seed(time.Now().UnixNano())
 	llaves := rand.Intn(*max - *min + 1) + *min
 	s := [2]string{"AS", string(llaves)}
 
 	envio := strings.Join(s[1:], " ")
-
+	log.Println("MAX: ",*max)
+	log.Println("MIN: ",*min)
+	log.Println("llaves ASIA ",llaves)
 	err = ch.Publish(
 		"",
 		"cola",

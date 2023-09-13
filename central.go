@@ -69,30 +69,64 @@ func main(){
 
 			// Rabbit
 			
-			ch := rabbit()
-
-			for j := 0; j < 4; {
-				msgs, _ := ch.Consume(
-					"cola",
-					"",
-					true,
-					false,
-					false,
-					false,
-					nil,
-				)
-				
-				go func() {
-					for d := range msgs {
-						log.Println(d.Body)
-						j++;
-					}
-				}()
-
-				//MANDAR LLAVES CON GRPC
+			conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+			if err != nil {
+				log.Println(err)
+				panic(err)
 			}
 
+			defer conn.Close()
 
+			ch, err := conn.Channel()
+
+			if err != nil {
+				log.Println(err)
+				panic(err)
+			}
+
+			defer ch.Close()
+
+			_, err = ch.QueueDeclare(
+				"cola", 
+				false,   
+				false,   
+				false,   
+				false,   
+				nil,     
+			)
+
+			if err != nil {
+				log.Println(err)
+				panic(err)
+			}
+			
+			sum := 0
+			canal := make(chan int)
+
+			
+			msgs, _ := ch.Consume(
+				"cola",
+				"",
+				true,
+				false,
+				false,
+				false,
+				nil,
+			)
+
+			
+
+			go func() {for d := range msgs {
+				log.Println(d.Body)
+				canal <- sum + 1
+			}}()
+			
+			
+			//MANDAR LLAVES CON GRPC
+			
+			for ; sum < 1; {
+				sum = <- canal
+			}
 
 		}
 	} // else
@@ -107,39 +141,4 @@ func main(){
 	log.Println("listo")
 
 
-}
-
-func rabbit() (*amqp.Channel){
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	if err != nil {
-		log.Println(err)
-		panic(err)
-	}
-
-	defer conn.Close()
-
-	ch, err := conn.Channel()
-
-	if err != nil {
-		log.Println(err)
-		panic(err)
-	}
-
-	defer ch.Close()
-
-	_, err = ch.QueueDeclare(
-		"cola", 
-		false,   
-		false,   
-		false,   
-		false,   
-		nil,     
-	  )
-
-	if err != nil {
-		log.Println(err)
-		panic(err)
-	}
-	
-	return ch
 }
