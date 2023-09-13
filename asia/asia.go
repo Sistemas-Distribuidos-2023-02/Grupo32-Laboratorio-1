@@ -15,7 +15,6 @@ import (
 	"math"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	pb "github.com/LaTortugaR/ProtosLab1/protos"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -38,14 +37,21 @@ type server struct {
 }
 
 func (s *server) MandarLlaves(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
-	log.Printf("Recibido: %v", in.GetNumero())
+	log.Printf("Recibido: %d", in.GetNumero())
 	go rabbit()
 	return &pb.Confirmar{Flag: "1"}, nil
 }
-func (s *server) MandarNoAccedidos(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
-	log.Printf("Recibido: %v", in.GetNumero())
-	usuarios = int(math.Max(0, usuarios - (interesados - strconv.Atoi(in.GetNumero()))))
-	return &pb.Confirmar{Flag: "1"}, nil
+func (s server) MandarNoAccedidos(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
+    log.Printf("Recibido: %d", in.GetNumero())
+    usuariosValor := *usuarios
+    interesadosValor, err := strconv.Atoi(in.GetNumero()) 
+    if err != nil{
+        return nil, err
+    }
+    usuariosValor = int(math.Max(0, float64(usuariosValor - (interesadosValor - usuariosValor))))
+    usuarios = &usuariosValor
+
+    return &pb.Confirmar{Flag: "1"}, nil
 }
 
 
@@ -55,9 +61,9 @@ func main() {
 	file, _ := os.Open("parametros_de_inicio.txt")
 	scanner := bufio.NewScanner(file)
 	scanner.Scan()
-	usuarios := strconv.Atoi(scanner.Text())
-	min := usuarios*0.4
-	max := usuarios*0.6
+	usuarios, err := strconv.Atoi(scanner.Text())
+	*min = int(float64(usuarios)*0.4)
+	*max = int(float64(usuarios)*0.6)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *asia))
 	if err != nil {
@@ -93,7 +99,7 @@ func rabbit() {
 
 	defer ch.Close()
 
-	q, err := ch.QueueDeclare(
+	_, err = ch.QueueDeclare(
 		"cola", 
 		false, 
 		false,   
@@ -108,7 +114,7 @@ func rabbit() {
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	llaves := rand.Intn(max - min + 1) + min
+	llaves := rand.Intn(*max - *min + 1) + *min
 	s := [2]string{"AS", string(llaves)}
 
 	envio := strings.Join(s[1:], " ")

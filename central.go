@@ -5,9 +5,15 @@ import (
 	"os"
 	"strings"
 	"strconv"
+	"context"
+	"flag"
 	"log"
+	"time"
 	"math/rand"
-    "time"
+
+    "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	pb "github.com/LaTortugaR/ProtosLab1/protos"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -28,16 +34,13 @@ func main(){
 	iteraciones, _ := strconv.Atoi(scanner.Text())
 	file.Close()
 
-	s := grpc.NewServer()
-	pb.RegisterServersServiceServer(s, &server{})
-
 	// Asia
 	conn_asia, err := grpc.Dial(*asia, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn_asia.Close()
-	c := pb.NewServersServiceConfirmar(conn_asia)
+	c := pb.NewServersServiceClient(conn_asia)
 
 	// America
 	// Europa
@@ -54,11 +57,11 @@ func main(){
 			llaves := rand.Intn(max - min + 1) + min
 
 			// Asia
-			r, err := c.MandarLlaves(ctx, &pb.Llaves{Numero: *llaves})  // x4
+			r, err := c.MandarLlaves(ctx, &pb.Llaves{Numero: string(llaves)})  // x4
 			if err != nil {
 				log.Fatalf("could not send: %v", err)
 			}
-			log.Printf("Sending: %s", r.GetBody())
+			log.Printf("Sending: %s", r.GetFlag())
 					
 			// America
 			// Europa
@@ -66,10 +69,10 @@ func main(){
 
 			// Rabbit
 			
-			ch := Rabbit()
+			ch := rabbit()
 
-			for j := 0; j < 4; j++ {
-				msgs, err := ch.Consume(
+			for j := 0; j < 4; {
+				msgs, _ := ch.Consume(
 					"cola",
 					"",
 					true,
@@ -82,6 +85,7 @@ func main(){
 				go func() {
 					for d := range msgs {
 						log.Println(d.Body)
+						j++;
 					}
 				}()
 
@@ -105,7 +109,7 @@ func main(){
 
 }
 
-func Rabbit(){
+func rabbit() (*amqp.Channel){
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		log.Println(err)
@@ -123,7 +127,7 @@ func Rabbit(){
 
 	defer ch.Close()
 
-	q, err := ch.QueueDeclare(
+	_, err = ch.QueueDeclare(
 		"cola", 
 		false,   
 		false,   
