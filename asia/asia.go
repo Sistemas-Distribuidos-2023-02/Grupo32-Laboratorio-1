@@ -9,6 +9,7 @@ import (
 	"flag"
 	"log"
 	"time"
+	"math/rand"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -54,4 +55,57 @@ func main() {
 		log.Fatalf("could not greet: %v", err)
 	}
 	log.Printf("Greeting: %s", r.GetBody())
+
+
+	//Rabbit
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		log.Println(err)
+		panic(err)
+	}
+
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+
+	if err != nil {
+		log.Println(err)
+		panic(err)
+	}
+
+	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		"cola", 
+		false, 
+		false,   
+		false,   
+		false,   
+		nil,     
+	)
+
+	if err != nil {
+		log.Println(err)
+		panic(err)
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	llaves := rand.Intn(max - min + 1) + min
+	s := [2]string{"AS", string(llaves)}
+
+	envio := strings.Join(s[1:], " ")
+	
+	err = ch.Publish(
+		"",
+		"cola",
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body: []byte(envio),
+		},
+	)
+
+	//GRCP ESCUCHA 2° VEZ
+
 }
