@@ -10,21 +10,44 @@ import (
 	"log"
 	"time"
 	"math/rand"
+	"net"
+	"fmt"
+	"math"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "github.com/LaTortugaR/testing_something/protos"
+	pb "github.com/LaTortugaR/ProtosLab1/protos"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 const (
-	defaultUsers = "0"
+	defaultUsers = 0
 )
 
 var (
 	central = flag.String("addr_central", "localhost:50051", "the address to connect to")
 	asia = flag.Int("asia_port", 50052, "The server port")
-	usuarios = flag.String("usuarios", defaultUsers, "Cantidad de usuarios")
+	usuarios = flag.Int("usuarios", defaultUsers, "Cantidad de usuarios")
+	interesados = flag.Int("interesados", 0, "Cantidad de interesados en la iteración")
+	min = flag.Int("minimo", 0, "")
+	max = flag.Int("maximo", 0, "")
 )
+
+type server struct {
+	pb.UnimplementedServersServiceServer
+}
+
+func (s *server) MandarLlaves(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
+	log.Printf("Recibido: %v", in.GetNumero())
+	go rabbit()
+	return &pb.Confirmar{Flag: "1"}, nil
+}
+func (s *server) MandarNoAccedidos(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
+	log.Printf("Recibido: %v", in.GetNumero())
+	usuarios = int(math.Max(0, usuarios - (interesados - strconv.Atoi(in.GetNumero()))))
+	return &pb.Confirmar{Flag: "1"}, nil
+}
+
 
 func main() {
 	flag.Parse()
@@ -36,26 +59,21 @@ func main() {
 	min := usuarios*0.4
 	max := usuarios*0.6
 
-
-	/// Pausa
-
-	// Set up a connection to the server.
-	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *asia))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Fatalf("failed to listen: %v", err)
 	}
-	defer conn.Close()
-	c := pb.NewChatServiceClient(conn)
-
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.SayHello(ctx, &pb.Request{Cliente: *name})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+	s := grpc.NewServer()
+	pb.RegisterServersServiceServer(s, &server{})
+	log.Printf("server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
 	}
-	log.Printf("Greeting: %s", r.GetBody())
 
+	/// GRPC escucha 1º vez
+}
+
+func rabbit() {
 
 	//Rabbit
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
@@ -94,7 +112,7 @@ func main() {
 	s := [2]string{"AS", string(llaves)}
 
 	envio := strings.Join(s[1:], " ")
-	
+
 	err = ch.Publish(
 		"",
 		"cola",
@@ -105,7 +123,5 @@ func main() {
 			Body: []byte(envio),
 		},
 	)
-
-	//GRCP ESCUCHA 2° VEZ
 
 }

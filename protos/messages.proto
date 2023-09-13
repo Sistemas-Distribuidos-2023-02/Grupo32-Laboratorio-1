@@ -2,7 +2,10 @@ syntax = "proto3";
 option go_package = "protos/messages";
 
 service ServersService {
-	rpc MandarLlaves(Request) returns (Confirmar) {}
+	rpc MandarLlaves(Llaves) returns (Confirmar) {}
+	
+	rpc MandarNoAccedidos(Llaves) returns (Confirmar) {}
+
 }
 
 message Llaves {
@@ -10,5 +13,5 @@ message Llaves {
 }
 
 message Confirmar {
-	string flag = 1
+	string flag = 1;
 }

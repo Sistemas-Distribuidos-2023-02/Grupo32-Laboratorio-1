@@ -16,15 +16,6 @@ var (
 	asia = flag.String("addr_asia", "localhost:50052", "the address to connect to")
 )
 
-type server struct {
-	pb.UnimplementedChatServiceServer
-}
-
-
-func (s *server) MandarLlaves(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
-	log.Printf("Mandado: %v", in.GetFlag())
-	return &pb.Confirmar{flag: "Numero de llaves recibidas: " + in.GetNumero()}, nil
-}
 
 func main(){
 	file, _ := os.Open("parametros_de_inicio.txt")
@@ -36,6 +27,9 @@ func main(){
 	scanner.Scan()
 	iteraciones, _ := strconv.Atoi(scanner.Text())
 	file.Close()
+
+	s := grpc.NewServer()
+	pb.RegisterServersServiceServer(s, &server{})
 
 	// Asia
 	conn_asia, err := grpc.Dial(*asia, grpc.WithTransportCredentials(insecure.NewCredentials()))

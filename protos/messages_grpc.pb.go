@@ -18,86 +18,122 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ChatServiceClient is the client API for ChatService service.
+// ServersServiceClient is the client API for ServersService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ChatServiceClient interface {
-	SayHello(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Message, error)
+type ServersServiceClient interface {
+	MandarLlaves(ctx context.Context, in *Llaves, opts ...grpc.CallOption) (*Confirmar, error)
+	MandarNoAccedidos(ctx context.Context, in *Llaves, opts ...grpc.CallOption) (*Confirmar, error)
 }
 
-type chatServiceClient struct {
+type serversServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewChatServiceClient(cc grpc.ClientConnInterface) ChatServiceClient {
-	return &chatServiceClient{cc}
+func NewServersServiceClient(cc grpc.ClientConnInterface) ServersServiceClient {
+	return &serversServiceClient{cc}
 }
 
-func (c *chatServiceClient) SayHello(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Message, error) {
-	out := new(Message)
-	err := c.cc.Invoke(ctx, "/ChatService/SayHello", in, out, opts...)
+func (c *serversServiceClient) MandarLlaves(ctx context.Context, in *Llaves, opts ...grpc.CallOption) (*Confirmar, error) {
+	out := new(Confirmar)
+	err := c.cc.Invoke(ctx, "/ServersService/MandarLlaves", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ChatServiceServer is the server API for ChatService service.
-// All implementations must embed UnimplementedChatServiceServer
+func (c *serversServiceClient) MandarNoAccedidos(ctx context.Context, in *Llaves, opts ...grpc.CallOption) (*Confirmar, error) {
+	out := new(Confirmar)
+	err := c.cc.Invoke(ctx, "/ServersService/MandarNoAccedidos", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ServersServiceServer is the server API for ServersService service.
+// All implementations must embed UnimplementedServersServiceServer
 // for forward compatibility
-type ChatServiceServer interface {
-	SayHello(context.Context, *Request) (*Message, error)
-	mustEmbedUnimplementedChatServiceServer()
+type ServersServiceServer interface {
+	MandarLlaves(context.Context, *Llaves) (*Confirmar, error)
+	MandarNoAccedidos(context.Context, *Llaves) (*Confirmar, error)
+	mustEmbedUnimplementedServersServiceServer()
 }
 
-// UnimplementedChatServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedChatServiceServer struct {
+// UnimplementedServersServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedServersServiceServer struct {
 }
 
-func (UnimplementedChatServiceServer) SayHello(context.Context, *Request) (*Message, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SayHello not implemented")
+func (UnimplementedServersServiceServer) MandarLlaves(context.Context, *Llaves) (*Confirmar, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MandarLlaves not implemented")
 }
-func (UnimplementedChatServiceServer) mustEmbedUnimplementedChatServiceServer() {}
+func (UnimplementedServersServiceServer) MandarNoAccedidos(context.Context, *Llaves) (*Confirmar, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MandarNoAccedidos not implemented")
+}
+func (UnimplementedServersServiceServer) mustEmbedUnimplementedServersServiceServer() {}
 
-// UnsafeChatServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ChatServiceServer will
+// UnsafeServersServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ServersServiceServer will
 // result in compilation errors.
-type UnsafeChatServiceServer interface {
-	mustEmbedUnimplementedChatServiceServer()
+type UnsafeServersServiceServer interface {
+	mustEmbedUnimplementedServersServiceServer()
 }
 
-func RegisterChatServiceServer(s grpc.ServiceRegistrar, srv ChatServiceServer) {
-	s.RegisterService(&ChatService_ServiceDesc, srv)
+func RegisterServersServiceServer(s grpc.ServiceRegistrar, srv ServersServiceServer) {
+	s.RegisterService(&ServersService_ServiceDesc, srv)
 }
 
-func _ChatService_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+func _ServersService_MandarLlaves_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Llaves)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ChatServiceServer).SayHello(ctx, in)
+		return srv.(ServersServiceServer).MandarLlaves(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ChatService/SayHello",
+		FullMethod: "/ServersService/MandarLlaves",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChatServiceServer).SayHello(ctx, req.(*Request))
+		return srv.(ServersServiceServer).MandarLlaves(ctx, req.(*Llaves))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ChatService_ServiceDesc is the grpc.ServiceDesc for ChatService service.
+func _ServersService_MandarNoAccedidos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Llaves)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServersServiceServer).MandarNoAccedidos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ServersService/MandarNoAccedidos",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServersServiceServer).MandarNoAccedidos(ctx, req.(*Llaves))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ServersService_ServiceDesc is the grpc.ServiceDesc for ServersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ChatService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "ChatService",
-	HandlerType: (*ChatServiceServer)(nil),
+var ServersService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "ServersService",
+	HandlerType: (*ServersServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SayHello",
-			Handler:    _ChatService_SayHello_Handler,
+			MethodName: "MandarLlaves",
+			Handler:    _ServersService_MandarLlaves_Handler,
+		},
+		{
+			MethodName: "MandarNoAccedidos",
+			Handler:    _ServersService_MandarNoAccedidos_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
