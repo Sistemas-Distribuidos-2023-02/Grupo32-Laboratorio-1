@@ -1,0 +1,14 @@
+syntax = "proto3";
+option go_package = "protos/messages";
+
+service ServersService {
+	rpc MandarLlaves(Request) returns (Confirmar) {}
+}
+
+message Llaves {
+	string numero = 1;
+}
+
+message Confirmar {
+	string flag = 1
+}

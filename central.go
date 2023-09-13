@@ -11,6 +11,20 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+var (
+	central = flag.Int("central_port", 50051, "The central port")
+	asia = flag.String("addr_asia", "localhost:50052", "the address to connect to")
+)
+
+type server struct {
+	pb.UnimplementedChatServiceServer
+}
+
+
+func (s *server) MandarLlaves(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
+	log.Printf("Mandado: %v", in.GetFlag())
+	return &pb.Confirmar{flag: "Numero de llaves recibidas: " + in.GetNumero()}, nil
+}
 
 func main(){
 	file, _ := os.Open("parametros_de_inicio.txt")
@@ -23,7 +37,7 @@ func main(){
 	iteraciones, _ := strconv.Atoi(scanner.Text())
 	file.Close()
 
-	
+	/*
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		log.Println(err)
@@ -57,24 +71,48 @@ func main(){
 
 	log.Println(q)
 
-	if iteraciones != -1{
+	*/
+
+	// Asia
+	conn_asia, err := grpc.Dial(*asia, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn_asia.Close()
+	c := pb.NewServersServiceConfirmar(conn_asia)
+
+	// America
+	// Europa
+	// Oceania
+
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	
+
+	if iteraciones != -1 {
 		for i := 0; i < iteraciones; i++ {
 			rand.Seed(time.Now().UnixNano())
 			llaves := rand.Intn(max - min + 1) + min
-			log.Println(llaves)
-			err = ch.Publish(
-				"",
-				"asia",
-				false,
-				false,
-				amqp.Publishing{
-					ContentType: "text/plain",
-					Body: []byte(string(llaves)),
-				},
-			)
+
+			// Asia
+			r, err := c.MandarLlaves(ctx, &pb.Llaves{Numero: *llaves})  // x4
+			if err != nil {
+				log.Fatalf("could not send: %v", err)
+			}
+			log.Printf("Sending: %s", r.GetBody())
 					
+			// America
+			// Europa
+			// Oceania
+
+			// Rabbit
+
+
+
+
 		}
-	}
+	} // else
 
 	
 
