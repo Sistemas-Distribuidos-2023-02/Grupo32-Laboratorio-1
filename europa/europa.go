@@ -22,7 +22,7 @@ import (
 
 var (
 	central = flag.String("addr_central", "localhost:50051", "the address to connect to")
-	asia = flag.Int("asia_port", 50052, "The server port")
+	europa = flag.Int("europa_port", 50053, "The server port")
 	usuarios int
 	interesados int
 	min int
@@ -34,31 +34,31 @@ type server struct {
 }
 
 func (s *server) MandarLlaves(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
-	log.Printf("Recibido: ", string(in.GetNumero()))
+	log.Printf("Recibido: %v", in.GetNumero())
 	go rabbit()
 	return &pb.Confirmar{Flag: "1"}, nil
 }
 func (s server) MandarNoAccedidos(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
-    log.Printf("Recibido: %v", string(in.GetNumero()))
+    log.Printf("Recibido: %v", in.GetNumero())
     usuariosValor := usuarios
     interesadosValor, err := strconv.Atoi(in.GetNumero()) 
     if err != nil{
         return nil, err
     }
-    usuariosValor = int(math.Max(0, float64(usuariosValor - (interesadosValor - interesados))))
+    usuariosValor = int(math.Max(0, float64(usuariosValor - (interesadosValor - usuariosValor))))
     usuarios = usuariosValor
-	
+
 	min = int(float64(usuarios)*0.4)
 	max = int(float64(usuarios)*0.6)
 
-    return &pb.Confirmar{Flag: "1"}, nil
+	return &pb.Confirmar{Flag: "1"}, nil
 }
 
 
 func main() {
 	flag.Parse()
 
-	file, _ := os.Open("asia/parametros_de_inicio.txt")
+	file, _ := os.Open("europa/parametros_de_inicio.txt")
 	scanner := bufio.NewScanner(file)
 	//scanner.Split(bufio.ScanWords)
 	scanner.Scan()
@@ -67,7 +67,7 @@ func main() {
 	min = int(float64(usuarios)*0.4)
 	max = int(float64(usuarios)*0.6)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *asia))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *europa))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -118,10 +118,10 @@ func rabbit() {
 
 	rand.Seed(time.Now().UnixNano())
 	llaves := rand.Intn(max - min + 1) + min
-	s := [2]string{"0", strconv.Itoa(llaves)}
+	s := [2]string{"1", strconv.Itoa(llaves)}	
 
 	envio := strings.Join(s[0:], " ")
-	log.Println("llaves asia: ",llaves)
+	log.Println("llaves europa: ",llaves)
 
 	err = ch.Publish(
 		"",

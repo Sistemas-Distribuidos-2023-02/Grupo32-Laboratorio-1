@@ -4,7 +4,6 @@ go 1.21.1
 
 require (
 	github.com/LaTortugaR/ProtosLab1 v0.0.0-20230913040520-271dd5236871 // indirect
-	github.com/LaTortugaR/testing_something v0.0.0-20230913010920-aeef5f86fd39 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/rabbitmq/amqp091-go v1.8.1 // indirect
 	golang.org/x/net v0.15.0 // indirect
