@@ -34,19 +34,17 @@ type server struct {
 }
 
 func (s *server) MandarLlaves(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
-	log.Printf("Recibido: ", string(in.GetNumero()))
+	runes := []rune(in.GetNumero())
+	log.Printf("Llaves central: %d", runes[0])
 	go rabbit()
 	return &pb.Confirmar{Flag: "1"}, nil
 }
 func (s server) MandarNoAccedidos(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
-    log.Printf("Recibido: %v", string(in.GetNumero()))
-    usuariosValor := usuarios
-    interesadosValor, err := strconv.Atoi(in.GetNumero()) 
-    if err != nil{
-        return nil, err
-    }
-    usuariosValor = int(math.Max(0, float64(usuariosValor - (interesadosValor - interesados))))
-    usuarios = usuariosValor
+	runes := []rune(in.GetNumero())
+    faltantes := int(runes[0]) //conversión mágica
+	log.Printf("usuarios faltantes: %d", faltantes)
+	
+    usuarios = int(math.Max(0, float64(usuarios - (interesados - faltantes)))) 
 	
 	min = int(float64(usuarios)*0.4)
 	max = int(float64(usuarios)*0.6)
@@ -62,10 +60,11 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	//scanner.Split(bufio.ScanWords)
 	scanner.Scan()
-	usuarios, _ := strconv.Atoi(scanner.Text())
-	log.Println(usuarios)
-	min = int(float64(usuarios)*0.4)
-	max = int(float64(usuarios)*0.6)
+	aux, _ := strconv.Atoi(scanner.Text())
+	log.Println(aux)
+	min = int(float64(aux)*0.4)
+	max = int(float64(aux)*0.6)
+	usuarios = aux
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *asia))
 	if err != nil {
@@ -118,6 +117,7 @@ func rabbit() {
 
 	rand.Seed(time.Now().UnixNano())
 	llaves := rand.Intn(max - min + 1) + min
+	interesados = llaves
 	s := [2]string{"0", strconv.Itoa(llaves)}
 
 	envio := strings.Join(s[0:], " ")

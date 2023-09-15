@@ -22,6 +22,8 @@ var (
 	central = flag.Int("central_port", 50051, "The central port")
 	asia = flag.String("addr_asia", "localhost:50052", "the address to connect to")
 	europa = flag.String("addr_europa", "localhost:50053", "the address to connect to")
+	america = flag.String("addr_america", "localhost:50054", "the address to connect to")
+	oceania = flag.String("addr_oceania", "localhost:50055", "the address to connect to")
 )
 
 
@@ -37,7 +39,7 @@ func main(){
 	file.Close()
 
 	llaves := 0
-	servers := [2]string{"asia", "europa"}
+	servers := [4]string{"asia", "europa", "america", "oceania"}
 	
 
 	// Asia
@@ -53,16 +55,28 @@ func main(){
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
-	defer conn_asia.Close()
+	defer conn_europa.Close()
 	c_europa := pb.NewServersServiceClient(conn_europa)
 
 	// America
+	conn_america, err := grpc.Dial(*america, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn_america.Close()
+	c_america := pb.NewServersServiceClient(conn_america)
 	
 	// Oceania
+	conn_oceania, err := grpc.Dial(*oceania, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn_oceania.Close()
+	c_oceania := pb.NewServersServiceClient(conn_oceania)
 
 
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 	
 	canal := make(chan int)
@@ -122,37 +136,50 @@ func main(){
 			llaves_pedidas := 0
 			if len(stringg) != 0 {
 				llaves_pedidas, _ = strconv.Atoi(stringg)
-				confirmar[region], _ = strconv.Atoi(stringg)
 			} else{
-				llaves_pedidas = 0
-
+				llaves_pedidas = 0	
 			}
 
+			confirmar[region] = llaves_pedidas
+			j := 0
+			for m := 0; m < len(confirmar); m++ {
+				if confirmar[m] == 0{j++}
+			}
+			if j == 4{iteraciones = 0}
+
 			dif := llaves_pedidas - llaves
-			no_accedidos := int(math.Max(math.Abs(float64(dif)), 0.0))   // cuantos no alcanzaron
-			llaves = int( math.Min(math.Abs(float64(-dif)), 0.0) )  //cuantos quedan disponibles
+			no_accedidos := int(math.Max(float64(dif), 0.0))   // cuantos no alcanzaron
+			llaves = int( math.Max(float64(-dif), 0.0) )  //cuantos quedan disponibles
 
 			//MANDAR LLAVES CON GRPC
 			if region == 0 {
-				_, err := c_asia.MandarNoAccedidos(ctx, &pb.Llaves{Numero: string(no_accedidos)})  // x4
+				_, err := c_asia.MandarNoAccedidos(ctx, &pb.Llaves{Numero: string(no_accedidos)})  
 				if err != nil {
 					log.Fatalf("could not send: %v", err)
 				}
 				
 				log.Println("Llaves q no accedio asia: ",no_accedidos)
 			} else if region == 1 {
-				_, err := c_europa.MandarNoAccedidos(ctx, &pb.Llaves{Numero: string(no_accedidos)})  // x4
+				_, err := c_europa.MandarNoAccedidos(ctx, &pb.Llaves{Numero: string(no_accedidos)})  
 				if err != nil {
 					log.Fatalf("could not send: %v", err)
 				}
 				log.Println("Llaves q no accedio europa: ",no_accedidos)
+			} else if region == 2 {
+				_, err := c_america.MandarNoAccedidos(ctx, &pb.Llaves{Numero: string(no_accedidos)})  
+				if err != nil {
+					log.Fatalf("could not send: %v", err)
+				}
+				log.Println("Llaves q no accedio america: ",no_accedidos)
+			} else if region == 3 {
+				_, err := c_oceania.MandarNoAccedidos(ctx, &pb.Llaves{Numero: string(no_accedidos)})  
+				if err != nil {
+					log.Fatalf("could not send: %v", err)
+				}
+				log.Println("Llaves q no accedio oceania: ",no_accedidos)
 			}
 
-			j := 0
-			for m := 0; m < len(confirmar); m++ {
-				if confirmar[m] == 0{j++}
-			}
-			if j == 4{iteraciones = 0}
+			
 			canal <- 1
 
 		}	
@@ -180,26 +207,42 @@ func main(){
 
 
 			// America
+			r, err = c_america.MandarLlaves(ctx, &pb.Llaves{Numero: string(llaves)})  // x4
+			if err != nil {
+				log.Fatalf("could not send: %v", err)
+			}
+			log.Printf("Sending: %s", r.GetFlag())
+
 			// Oceania
+			r, err = c_oceania.MandarLlaves(ctx, &pb.Llaves{Numero: string(llaves)})  // x4
+			if err != nil {
+				log.Fatalf("could not send: %v", err)
+			}
+			log.Printf("Sending: %s", r.GetFlag())
+
 
 			// Rabbit
 			
+			// En su tiempo el go rabbit estaba aca :p
 			
 	
 			
-			for ; sum < 2; {
+			for ; sum < 4; {
+				log.Printf("Esperando mensaje nº%d", sum )
 				select {
 				case  <- canal:
 					sum++
 				}
 			}
 
+			log.Println("Fin iteración")
 			sum = 0
 		
 
 		}
 	}else{
-		for ; iteraciones == 0; {
+		i := 0
+		for ; iteraciones == -1 ; i++ {
 			rand.Seed(time.Now().UnixNano())
 			llaves = rand.Intn(max - min + 1) + min
 
@@ -219,20 +262,33 @@ func main(){
 
 
 			// America
+			r, err = c_america.MandarLlaves(ctx, &pb.Llaves{Numero: string(llaves)})  // x4
+			if err != nil {
+				log.Fatalf("could not send: %v", err)
+			}
+			log.Printf("Sending: %s", r.GetFlag())
+
 			// Oceania
+			r, err = c_oceania.MandarLlaves(ctx, &pb.Llaves{Numero: string(llaves)})  // x4
+			if err != nil {
+				log.Fatalf("could not send: %v", err)
+			}
+			log.Printf("Sending: %s", r.GetFlag())
 
 			// Rabbit
 			
 			
 	
 			
-			for ; sum < 2; {
+			for ; sum < 4; {
+				log.Printf("Esperando mensaje nº%d", sum )
 				select {
 				case  <- canal:
 					sum++
 				}
 			}
 
+			log.Printf("Fin iteración nº%d \n", i)
 			sum = 0
 		
 
