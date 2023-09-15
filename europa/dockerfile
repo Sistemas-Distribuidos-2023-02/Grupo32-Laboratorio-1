@@ -2,11 +2,11 @@ FROM golang:1.21
 
 WORKDIR /europa
 
-COPY ../go.mod ../go.sum ./
-RUN go mod download
+COPY go.mod .
+COPY europa.go .
+COPY parametros_de_inicio.txt .
 
-COPY *.go ./
-
+RUN go get
 RUN go build -o /docker-europa
 
 EXPOSE 8080

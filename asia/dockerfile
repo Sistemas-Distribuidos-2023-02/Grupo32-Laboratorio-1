@@ -2,11 +2,11 @@ FROM golang:1.21
 
 WORKDIR /asia
 
-COPY ../go.mod ../go.sum ./
-RUN go mod download
+COPY go.mod .
+COPY asia.go .
+COPY parametros_de_inicio.txt .
 
-COPY *.go ./
-
+RUN go get
 RUN go build -o /docker-asia
 
 EXPOSE 8080

@@ -2,13 +2,12 @@ FROM golang:1.21
 
 WORKDIR /america
 
-COPY ../go.mod ../go.sum ./
+COPY go.mod .
+COPY america.go .
+COPY parametros_de_inicio.txt .
 
-RUN go mod download
-
-COPY *.go ./
-
-RUN go build -o /docker-asia
+RUN go get
+RUN go build -o /docker-america
 
 EXPOSE 8080
 

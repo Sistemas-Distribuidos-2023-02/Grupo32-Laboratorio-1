@@ -2,12 +2,12 @@ FROM golang:1.21
 
 WORKDIR /oceania
 
-COPY ../go.mod ../go.sum ./
-RUN go mod download
+COPY go.mod .
+COPY oceania.go .
+COPY parametros_de_inicio.txt .
 
-COPY *.go ./
-
-RUN go build -o /docker-europa
+RUN go get
+RUN go build -o /docker-oceania
 
 EXPOSE 8080
 
