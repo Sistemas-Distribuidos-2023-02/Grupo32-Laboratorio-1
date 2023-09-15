@@ -1,9 +1,10 @@
 FROM golang:1.21
 
 WORKDIR /europa
-
-COPY go.mod .
 COPY europa.go .
+RUN go mod init-containerized-go-app
+RUN go mod tidy
+
 COPY parametros_de_inicio.txt .
 
 RUN go get
