@@ -1,10 +1,12 @@
-FROM golang:1.18
+FROM golang:1.21
 
-COPY go.mod go.sum ./
-RUN go mod download
+WORKDIR /central
 
-COPY *.go ./
+COPY go.mod .
+COPY central.go .
+COPY parametros_de_inicio.txt .
 
+RUN go get
 RUN go build -o /docker-central
 
 EXPOSE 8080
