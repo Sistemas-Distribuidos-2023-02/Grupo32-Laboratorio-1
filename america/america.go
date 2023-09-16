@@ -83,7 +83,7 @@ func main() {
 func rabbit() {
 
 	//Rabbit
-	conn, err := amqp.Dial("amqp://guest:guest@dist126.inf.santiago.usm.cl:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@dist128.inf.santiago.usm.cl:5672/")
 	if err != nil {
 		log.Println(err)
 		panic(err)
