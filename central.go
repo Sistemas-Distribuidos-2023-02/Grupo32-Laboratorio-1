@@ -81,7 +81,15 @@ func main(){
 	
 	canal := make(chan int)
 	
-	conn, err := amqp.Dial("amqp://guest:guest@10.6.46.136:5672/")
+	user := os.Getenv(usuario)
+	password := os.Getenv(contra)
+	host := os.Getenv(host)
+	port := os.Getenv(port)
+
+	conexion := fmt.Sprintf("amqp://%s:%s@%s:%s/", user, password, host, port)
+
+
+	conn, err := amqp.Dial(conexion)
 	if err != nil {
 		log.Println(err)
 		panic(err)
