@@ -20,10 +20,10 @@ import (
 
 var (
 	central = flag.Int("central_port", 50051, "The central port")
-	asia = flag.String("addr_asia", "10.6.46.135:50052", "the address to connect to")
-	europa = flag.String("addr_europa", "10.6.46.136:50053", "the address to connect to")
-	america = flag.String("addr_america", "10.6.46.137:50054", "the address to connect to")
-	oceania = flag.String("addr_oceania", "10.6.46.138:50055", "the address to connect to")
+	asia = flag.String("addr_asia", "dist125.inf.santiago.usm.cl:50052", "the address to connect to")
+	europa = flag.String("addr_europa", "dist126.inf.santiago.usm.cl:50053", "the address to connect to")
+	america = flag.String("addr_america", "dist127.inf.santiago.usm.cl:50054", "the address to connect to")
+	oceania = flag.String("addr_oceania", "dist128.inf.santiago.usm.cl:50055", "the address to connect to")
 )
 
 
@@ -80,16 +80,8 @@ func main(){
 	defer cancel()
 	
 	canal := make(chan int)
-	
-	user := os.Getenv(usuario)
-	password := os.Getenv(contra)
-	host := os.Getenv(host)
-	port := os.Getenv(port)
 
-	conexion := fmt.Sprintf("amqp://%s:%s@%s:%s/", user, password, host, port)
-
-
-	conn, err := amqp.Dial(conexion)
+	conn, err := amqp.Dial("amqp://guest:guest@dist126.inf.santiago.usm.cl:5672/")
 	if err != nil {
 		log.Println(err)
 		panic(err)
@@ -97,8 +89,7 @@ func main(){
 
 	defer conn.Close()
 	ch, err := conn.Channel()
-
-	if err != nil {
+dist002.inf.santiago.usm.cl nil {
 		log.Println(err)
 		panic(err)
 	}

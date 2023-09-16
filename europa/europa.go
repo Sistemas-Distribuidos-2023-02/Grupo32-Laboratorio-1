@@ -21,7 +21,7 @@ import (
 
 
 var (
-	central = flag.String("addr_central", "10.6.46.135:50051", "the address to connect to")
+	central = flag.String("addr_central", "dist125.inf.santiago.usm.cl:50051", "the address to connect to")
 	europa = flag.Int("europa_port", 50053, "The server port")
 	usuarios int
 	interesados int
@@ -83,7 +83,7 @@ func main() {
 func rabbit() {
 
 	//Rabbit
-	conn, err := amqp.Dial("amqp://guest:guest@10.6.46.136:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@dist126.inf.santiago.usm.cl:5672/")
 	if err != nil {
 		log.Println(err)
 		panic(err)
