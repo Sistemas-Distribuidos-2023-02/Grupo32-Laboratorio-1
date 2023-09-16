@@ -88,8 +88,10 @@ func main(){
 	}
 
 	defer conn.Close()
+	
 	ch, err := conn.Channel()
-dist002.inf.santiago.usm.cl nil {
+
+	if err != nil {
 		log.Println(err)
 		panic(err)
 	}
