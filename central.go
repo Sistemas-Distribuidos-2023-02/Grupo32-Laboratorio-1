@@ -20,10 +20,10 @@ import (
 
 var (
 	central = flag.Int("central_port", 50051, "The central port")
-	asia = flag.String("addr_asia", "localhost:50052", "the address to connect to")
-	europa = flag.String("addr_europa", "localhost:50053", "the address to connect to")
-	america = flag.String("addr_america", "localhost:50054", "the address to connect to")
-	oceania = flag.String("addr_oceania", "localhost:50055", "the address to connect to")
+	asia = flag.String("addr_asia", "10.6.46.135:50052", "the address to connect to")
+	europa = flag.String("addr_europa", "10.6.46.136:50053", "the address to connect to")
+	america = flag.String("addr_america", "10.6.46.137:50054", "the address to connect to")
+	oceania = flag.String("addr_oceania", "10.6.46.138:50055", "the address to connect to")
 )
 
 
@@ -129,7 +129,7 @@ func main(){
 	go func() {
 		for d := range msgs {
 			region, _ := strconv.Atoi(string(d.Body[0]))  
-			log.Println("Llaves pedidas por", servers[region],": ", string(d.Body[1:]))
+			log.Println("Cupos pedidos asincrónicamente por servidor ", servers[region],": ", string(d.Body[1:]))
 			stringg := string(d.Body)
 			stringg = stringg[2:] 
 
@@ -150,7 +150,9 @@ func main(){
 			dif := llaves_pedidas - llaves
 			no_accedidos := int(math.Max(float64(dif), 0.0))   // cuantos no alcanzaron
 			llaves = int( math.Max(float64(-dif), 0.0) )  //cuantos quedan disponibles
-
+			
+			log.Println("Se inscribieron ", string.Itoa( llaves_pedidas - no_accedidos ) , " cupos de servidor ", servers[region])
+			
 			//MANDAR LLAVES CON GRPC
 			if region == 0 {
 				_, err := c_asia.MandarNoAccedidos(ctx, &pb.Llaves{Numero: string(no_accedidos)})  
@@ -158,25 +160,21 @@ func main(){
 					log.Fatalf("could not send: %v", err)
 				}
 				
-				log.Println("Llaves q no accedio asia: ",no_accedidos)
 			} else if region == 1 {
 				_, err := c_europa.MandarNoAccedidos(ctx, &pb.Llaves{Numero: string(no_accedidos)})  
 				if err != nil {
 					log.Fatalf("could not send: %v", err)
 				}
-				log.Println("Llaves q no accedio europa: ",no_accedidos)
 			} else if region == 2 {
 				_, err := c_america.MandarNoAccedidos(ctx, &pb.Llaves{Numero: string(no_accedidos)})  
 				if err != nil {
 					log.Fatalf("could not send: %v", err)
 				}
-				log.Println("Llaves q no accedio america: ",no_accedidos)
 			} else if region == 3 {
 				_, err := c_oceania.MandarNoAccedidos(ctx, &pb.Llaves{Numero: string(no_accedidos)})  
 				if err != nil {
 					log.Fatalf("could not send: %v", err)
 				}
-				log.Println("Llaves q no accedio oceania: ",no_accedidos)
 			}
 
 			
@@ -187,6 +185,9 @@ func main(){
 
 	if iteraciones != -1 {
 		for i := 0; i < iteraciones; i++ {
+
+			log.Printf("Generación " + strconv.Itoa(i+1) + "/" + strconv.Itoa(iteraciones))
+
 			rand.Seed(time.Now().UnixNano())
 			llaves = rand.Intn(max - min + 1) + min
 			log.Println("Llaves creadas en la iteracion " + strconv.Itoa(i+1) + ": " + strconv.Itoa(llaves))
@@ -243,6 +244,10 @@ func main(){
 	}else{
 		i := 0
 		for ; iteraciones == -1 ; i++ {
+
+			log.Printf("Generación %d/Infinito :", (i+1))
+
+
 			rand.Seed(time.Now().UnixNano())
 			llaves = rand.Intn(max - min + 1) + min
 

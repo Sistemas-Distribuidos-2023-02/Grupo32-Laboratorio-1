@@ -21,7 +21,7 @@ import (
 
 
 var (
-	central = flag.String("addr_central", "localhost:50051", "the address to connect to")
+	central = flag.String("addr_central", "10.6.46.135:50051", "the address to connect to")
 	asia = flag.Int("asia_port", 50052, "The server port")
 	usuarios int
 	interesados int
@@ -35,17 +35,18 @@ type server struct {
 
 func (s *server) MandarLlaves(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
 	runes := []rune(in.GetNumero())
-	log.Printf("Llaves central: %d", runes[0])
 	go rabbit()
 	return &pb.Confirmar{Flag: "1"}, nil
 }
 func (s server) MandarNoAccedidos(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
 	runes := []rune(in.GetNumero())
     faltantes := int(runes[0]) //conversión mágica
-	log.Printf("usuarios faltantes: %d", faltantes)
 	
     usuarios = int(math.Max(0, float64(usuarios - (interesados - faltantes)))) 
 	
+	log.Printf("Usuarios que lograron inscribirse: %d", interesados - faltantes)
+	log.Printf("Usuarios restantes en espera de cupo : %d", usuarios)
+
 	min = int(float64(usuarios)*0.4)
 	max = int(float64(usuarios)*0.6)
 
@@ -61,7 +62,7 @@ func main() {
 	//scanner.Split(bufio.ScanWords)
 	scanner.Scan()
 	aux, _ := strconv.Atoi(scanner.Text())
-	log.Println(aux)
+	log.Printf( "Hay ", string.Itoa(aux) ," personas totales interesadas en inscribir la beta" )
 	min = int(float64(aux)*0.4)
 	max = int(float64(aux)*0.6)
 	usuarios = aux
@@ -121,7 +122,7 @@ func rabbit() {
 	s := [2]string{"0", strconv.Itoa(llaves)}
 
 	envio := strings.Join(s[0:], " ")
-	log.Println("llaves asia: ",llaves)
+	log.Printf("Se solicita a la central inscribir ", llaves, " cupos")
 
 	err = ch.Publish(
 		"",

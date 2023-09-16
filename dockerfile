@@ -1,9 +1,10 @@
 FROM golang:1.21
 
 WORKDIR /central
-
-COPY go.mod .
 COPY central.go .
+RUN go mod init containerized-go-app
+RUN go mod tidy
+
 COPY parametros_de_inicio.txt .
 
 RUN go get
