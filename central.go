@@ -151,7 +151,7 @@ func main(){
 			no_accedidos := int(math.Max(float64(dif), 0.0))   // cuantos no alcanzaron
 			llaves = int( math.Max(float64(-dif), 0.0) )  //cuantos quedan disponibles
 			
-			log.Println("Se inscribieron ", string.Itoa( llaves_pedidas - no_accedidos ) , " cupos de servidor ", servers[region])
+			log.Println("Se inscribieron ", strconv.Itoa( llaves_pedidas - no_accedidos ) , " cupos de servidor ", servers[region])
 			
 			//MANDAR LLAVES CON GRPC
 			if region == 0 {

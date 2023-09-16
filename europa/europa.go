@@ -34,7 +34,6 @@ type server struct {
 }
 
 func (s *server) MandarLlaves(ctx context.Context, in *pb.Llaves) (*pb.Confirmar, error) {
-	runes := []rune(in.GetNumero())
 	go rabbit()
 	return &pb.Confirmar{Flag: "1"}, nil
 }
@@ -62,7 +61,7 @@ func main() {
 	//scanner.Split(bufio.ScanWords)
 	scanner.Scan()
 	aux, _ := strconv.Atoi(scanner.Text())
-	log.Printf( "Hay ", string.Itoa(aux) ," personas totales interesadas en inscribir la beta" )
+	log.Printf( "Hay ", strconv.Itoa(aux) ," personas totales interesadas en inscribir la beta" )
 	min = int(float64(aux)*0.4)
 	max = int(float64(aux)*0.6)
 	usuarios = aux
