@@ -22,3 +22,5 @@ ya que nos aparecia un problema de conexión rechazada al conectarnos al rabbit,
 por lo cual algunas veces nos servia el programa y otras veces no, el problema
 se refería a que algunos puertos estaban cerrados por ende tuvimos que abrir 
 los puertos manualmente.
+
+-Tuvimos que hacer público el github para que al clonar sea más fácil
