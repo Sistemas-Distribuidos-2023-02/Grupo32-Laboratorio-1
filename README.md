@@ -13,7 +13,7 @@ Como ejecutar el programa:
 - Primero clonar el github del Grupo32
 - Hacer cd Grupo32-Laboratorio-1
 - Para ejecutar los archivos hacer primero el make docker-rabbit,
-después make docker-[region] (en [region] poner la region correspondiente),
+después make docker-[region] (en [region] poner la región correspondiente),
 y por último make docker-central. Por lo cual se necesitan 6 consolas abiertas.
 
 Posdata:
